@@ -10,7 +10,7 @@
 #include <iostream>
 
 
-int Demo::isProcessing(std::string file)
+int Demo::getProcessCount(std::string file)
 {
 	std::string path, name;//   路径/文件.exe
 
@@ -61,12 +61,31 @@ int Demo::isProcessing(std::string file)
 	CloseHandle(handle); return count;
 }
 
+std::string Demo::paths(std::string subpath)
+{
+	static std::string parent;
+
+	if (parent.size() == 0) {
+		char exe[MAX_PATH];
+		unsigned long len = GetModuleFileName(NULL, exe, MAX_PATH);
+
+		while (len-- > 0) {
+			if (exe[len] == '\\') {
+				parent.append(exe, len); break;
+			}
+		}
+	}
+
+	return std::string(parent).append(subpath);
+}
+
+
 int main() {
 	char exe[MAX_PATH];
 	GetModuleFileName(NULL, exe, MAX_PATH);
 
-	if (Demo::isProcessing(exe)>1) {//相同目录只能运行一个
-		return 0;
+	if (Demo::getProcessCount(exe) > 1) {//相同目录只能运行一个
+		return -1;
 	}
 
 	while (true)
