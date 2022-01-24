@@ -8,8 +8,11 @@ class Daemon
 private://守护进程正在运行
 	static bool running;
 
+private://守护进程exe路径
+	static std::string daemon;
+
 public://启动或停止守护进程
-	static void startProcess();
+	static bool startProcess();
 	static void stopProcess();
 
 public://通过exe文件获取正在运行的exe进程数量

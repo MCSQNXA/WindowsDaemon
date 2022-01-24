@@ -1,6 +1,7 @@
 #include "Demo.h"
 
 #include <windows.h>
+#include <io.h>
 #include <psapi.h>
 #include <comdef.h>
 #include <tlhelp32.h>
@@ -81,6 +82,14 @@ std::string Demo::paths(std::string subpath)
 
 bool Demo::startExe(std::string file)
 {
+	std::string path;//file文件父路径
+
+	for (size_t i = file.size() - 1; i > 0; i--) {//分割file
+		if (file[i] == '/' || file[i] == '\\') {
+			path.append(file.substr(0, i)); break;
+		}
+	}
+
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
@@ -97,7 +106,7 @@ bool Demo::startExe(std::string file)
 			//CREATE_NEW_CONSOLE新控制台打开子进程
 			//CREATE_SUSPENDED子进程创建后挂起，直到调用ResumeThread函数
 		NULL,//指向一个新进程的环境块。如果此参数为空，新进程使用调用进程的环境
-		NULL,//指定子进程的工作路径
+		path.c_str(),//指定子进程的工作路径
 		&si,//决定新进程的主窗体如何显示的STARTUPINFO结构体
 		&pi//接收新进程的识别信息的PROCESS_INFORMATION结构体
 	)) {
@@ -117,7 +126,11 @@ int main() {
 		return -1;
 	}
 
-	std::string target = Demo::paths("\\Demo.exe");//守护目标exe路径
+	std::string target = Demo::paths("\\Demo.exe");//守护目标exe进程路径
+
+	if (_access(target.c_str(), 0) != 0) {
+		return -2;
+	}
 
 	while (true) {
 		if (Demo::getProcessCount(target) == 0) {//目标exe死亡，唤醒

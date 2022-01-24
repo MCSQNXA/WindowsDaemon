@@ -4,27 +4,27 @@
 
 #include <windows.h>
 
+Daemon daemon;
+
+
+bool ctrlhandler(DWORD type)
+{
+	daemon.stopProcess();//停止守护进程
+
+	return false;
+}
+
 
 int main()
 {
-	Daemon daemon;
-	daemon.startProcess();
+	daemon.startProcess();//启动守护进程
 
-	std::cout << daemon.startExe("D:\\WindowsDaemon\\Debug\\Daemon.exe") << std::endl;
-
-	Sleep(3000);
-
-	std::cout << daemon.stopExe("D:\\WindowsDaemon\\Debug\\Daemon.exe") << std::endl;;
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrlhandler, true);//监听控制台右上角关闭事件
 
 
-
-
-
-	/*while (true)
-	{
-		std::cout << "Running" << std::endl; Sleep(1000);
-	}*/
-
+	for (int i = 0; i < 10; i++) {//模拟被杀死
+		std::cout << "Running" << "=" << i << std::endl; Sleep(500);
+	}
 
 
 

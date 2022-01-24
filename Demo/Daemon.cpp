@@ -1,36 +1,49 @@
 #include "Daemon.h"
 
 #include <windows.h>
+#include <io.h>
 #include <psapi.h>
 #include <comdef.h>
 #include <tlhelp32.h>
 
 #include <string>
 #include <thread>
-#include <iostream>
 
 
 bool Daemon::running;
+std::string Daemon::daemon = Daemon::paths("\\Daemon.exe");
 
 
-void Daemon::startProcess()
+bool Daemon::startProcess()
 {
 	if (Daemon::running) {
-		return;
+		return true;
+	}
+
+	if (_access(Daemon::daemon.c_str(), 0) != 0) {
+		return false;
 	}
 
 	Daemon::running = true;
 
-	std::thread([&] {
-		while (Daemon::running) {
+	if (Daemon::getProcessCount(Daemon::daemon) > 0) {
+		return true;
+	}
 
+	std::thread([] {
+		while (Daemon::running) {
+			if (Daemon::getProcessCount(Daemon::daemon) == 0) {
+				Daemon::startExe(Daemon::daemon);//唤醒守护进程
+			}
+
+			Sleep(3000);
 		}
-		}).detach();
+		}).detach(); return true;
 }
 
 void Daemon::stopProcess()
 {
-	Daemon::running = false;
+	Daemon::running = false; Daemon::stopExe(Daemon::daemon);
 }
 
 int Daemon::getProcessCount(std::string file)
@@ -104,6 +117,14 @@ std::string Daemon::paths(std::string subpath)
 
 bool Daemon::startExe(std::string file)
 {
+	std::string path;//file文件父路径
+
+	for (size_t i = file.size() - 1; i > 0; i--) {//分割file
+		if (file[i] == '/' || file[i] == '\\') {
+			path.append(file.substr(0, i)); break;
+		}
+	}
+
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
@@ -120,7 +141,7 @@ bool Daemon::startExe(std::string file)
 			//CREATE_NEW_CONSOLE新控制台打开子进程
 			//CREATE_SUSPENDED子进程创建后挂起，直到调用ResumeThread函数
 		NULL,//指向一个新进程的环境块。如果此参数为空，新进程使用调用进程的环境
-		NULL,//指定子进程的工作路径
+		path.c_str(),//指定子进程的工作路径
 		&si,//决定新进程的主窗体如何显示的STARTUPINFO结构体
 		&pi//接收新进程的识别信息的PROCESS_INFORMATION结构体
 	)) {
