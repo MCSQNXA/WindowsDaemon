@@ -160,7 +160,7 @@ bool Daemon::stopExe(std::string file)
 			continue;
 		}
 
-		HANDLE process = OpenProcess(PROCESS_TERMINATE, FALSE, info.th32ProcessID);
+		HANDLE process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, info.th32ProcessID);
 
 		if (process == NULL) {
 			continue;
@@ -170,7 +170,12 @@ bool Daemon::stopExe(std::string file)
 		GetModuleFileNameExA(process, NULL, exe, sizeof(exe));//通过pid获取路径
 
 		if (file.compare(exe) == 0) {//进程运行中
-			TerminateProcess(process, 300); CloseHandle(process); return true;
+			HANDLE kill = OpenProcess(PROCESS_ALL_ACCESS, FALSE, info.th32ProcessID);
+
+			TerminateProcess(kill, 0);//关闭进程
+
+			CloseHandle(kill);
+			CloseHandle(process); return true;
 		}
 
 		CloseHandle(process);
