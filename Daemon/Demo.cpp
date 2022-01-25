@@ -72,7 +72,7 @@ std::string Demo::paths(std::string subpath)
 
 		while (len-- > 0) {
 			if (exe[len] == '\\') {
-				parent.append(exe, len); break;
+				parent.append(exe, len + 1); break;
 			}
 		}
 	}
@@ -126,14 +126,14 @@ int main() {
 		return -1;
 	}
 
-	std::string target = Demo::paths("\\Demo.exe");//守护目标exe进程路径
+	std::string target = Demo::paths("Demo.exe");//守护目标exe进程路径
 
 	if (_access(target.c_str(), 0) != 0) {
 		return -2;
 	}
 
 	while (true) {
-		if (Demo::getProcessCount(target) == 0) {//目标exe死亡，唤醒
+		if (Demo::getProcessCount(target) < 1) {//目标exe死亡，唤醒
 			Demo::startExe(target);
 		}
 

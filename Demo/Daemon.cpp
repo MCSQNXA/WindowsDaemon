@@ -11,7 +11,7 @@
 
 
 bool Daemon::running;
-std::string Daemon::daemon = Daemon::paths("\\Daemon.exe");
+std::string Daemon::daemon = Daemon::paths("Daemon.exe");
 
 
 bool Daemon::startProcess()
@@ -32,7 +32,7 @@ bool Daemon::startProcess()
 
 	std::thread([] {
 		while (Daemon::running) {
-			if (Daemon::getProcessCount(Daemon::daemon) == 0) {
+			if (Daemon::getProcessCount(Daemon::daemon) < 1) {
 				Daemon::startExe(Daemon::daemon);//»½ÐÑÊØ»¤½ø³Ì
 			}
 
@@ -107,7 +107,7 @@ std::string Daemon::paths(std::string subpath)
 
 		while (len-- > 0) {
 			if (exe[len] == '\\') {
-				parent.append(exe, len); break;
+				parent.append(exe, len + 1); break;
 			}
 		}
 	}
